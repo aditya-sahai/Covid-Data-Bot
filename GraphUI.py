@@ -1,5 +1,5 @@
-import datetime
-import calendar
+from datetime import date
+from calendar import month_name
 import matplotlib.pyplot as plt
 import numpy as np
 import json
@@ -10,9 +10,9 @@ class GraphUI:
     def __init__(self):
         """Initialize the DataReceiver class."""
 
-        self.day_today = datetime.date.today().day
-        self.current_month = calendar.month_name[datetime.date.today().month]
-        self.current_year = datetime.date.today().year
+        self.day_today = date.today().day
+        self.current_month = month_name[date.today().month]
+        self.current_year = date.today().year
         self.DATAFILENAME = "covid-data.json"
 
         with open(self.DATAFILENAME, "r") as data_file:
