@@ -1,0 +1,14 @@
+Data link: "https://covid.ourworldindata.org/data/owid-covid-data.csv"
+Site link: "https://slides.ourworldindata.org/#/title-slide"
+Countries Deaths link: "https://slides.ourworldindata.org/2020_pandemic/2020_pandemic#/1"
+
+To Do:
+
+1)  Understand the csv file
+    Data col meaning: "https://github.com/owid/covid-19-data/blob/master/public/data/owid-covid-data-codebook.md" - done
+
+2)  Find a way to download the data using code - done
+
+3)  Make the data accesible - done
+
+4)  Visualize the country-deaths data on a graph
