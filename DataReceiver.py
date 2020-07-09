@@ -12,7 +12,7 @@ class DataReceiver:
         self.DATAURL = "https://covid.ourworldindata.org/data/owid-covid-data.json"
         self.DATAFILENAME = "covid-data.json"
 
-    def download_csv_data(self):
+    def download_json_data(self):
         """Makes a file called covid-data.json containing the covid data and return a dictionary."""
 
         response = requests.get(self.DATAURL, headers=DataReceiver.headers)
@@ -28,4 +28,4 @@ class DataReceiver:
 
 if __name__ == "__main__":
     obj = DataReceiver()
-    obj.download_csv_data()
+    obj.download_json_data()

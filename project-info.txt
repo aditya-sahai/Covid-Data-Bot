@@ -11,4 +11,8 @@ To Do:
 
 3)  Make the data accesible - done
 
-4)  Visualize the country-deaths data on a graph
+4)  Visualize the country-deaths data on a graph - done
+
+5)  Plot continents
+
+6)  Plot deaths for india and china
