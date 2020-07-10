@@ -22,7 +22,6 @@ class DataReceiver:
         with open(self.DATAFILENAME, "w") as data_file:
             json.dump(covid_data, data_file, indent=4)
 
-        print(type(covid_data))
         return covid_data
 
 
