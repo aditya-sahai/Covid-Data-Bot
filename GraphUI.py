@@ -22,8 +22,7 @@ class GraphUI:
             country_deaths_list.append(int(country_data["total_deaths"]))
             dates_list.append(country_data["date"])
 
-        plt.plot(dates_list, country_deaths_list)
-        # self.format_and_show_graph()
+        plt.plot(dates_list, country_deaths_list, color=color)
 
     def format_and_show_graph(self):
         """Rotates, sets the x and y labels and shows the graph."""
@@ -37,7 +36,6 @@ class GraphUI:
 
 if __name__ == "__main__":
     GraphObj = GraphUI()
-    # GraphObj.plot_on_dates("IND", (1, 0, 0))
-    GraphObj.plot_single_country_deaths("IND", (1, 0, 0), number_of_days=7)
-    GraphObj.plot_single_country_deaths("CHN", (0, 1, 0), number_of_days=7)
+    GraphObj.plot_single_country_deaths("IND", (1, 0, 0), number_of_days=50)
+    GraphObj.plot_single_country_deaths("CHN", (0, 1, 0), number_of_days=50)
     GraphObj.format_and_show_graph()

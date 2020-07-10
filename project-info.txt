@@ -1,4 +1,4 @@
-Data link: "https://covid.ourworldindata.org/data/owid-covid-data.csv"
+Data link: "https://covid.ourworldindata.org/data/owid-covid-data.json"
 Site link: "https://slides.ourworldindata.org/#/title-slide"
 Countries Deaths link: "https://slides.ourworldindata.org/2020_pandemic/2020_pandemic#/1"
 
@@ -13,6 +13,6 @@ To Do:
 
 4)  Visualize the country-deaths data on a graph - done
 
-5)  Plot continents
+5)  Plot deaths for india and china - done
 
-6)  Plot deaths for india and china
+6)  Plot continents total_deaths
