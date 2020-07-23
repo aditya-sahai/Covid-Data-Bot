@@ -1,7 +1,7 @@
 import requests
 
 
-class DatahubDataDownloader:
+class DatahubDataReceiver:
     def __init__(self):
         self.DOWNLOAD_URL = "https://datahub.io/core/covid-19/r/countries-aggregated.csv"
         self.OUTPUT_FILE_NAME = "datahub-countries-aggregated-data.csv"
