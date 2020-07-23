@@ -1,12 +1,12 @@
 import csv
 
 
-class CSVDataReader:
+class DatahubDataReader:
     def __init__(self):
-        self.FILE_PATH = "datahub-countries-aggregated-data.csv"
-        self.DATES_DATA_FILE_NAME = "dates-data.csv"
+        self.DATA_FILE_NAME = "datahub-countries-aggregated-data.csv"
+        self.DATES_DATA_FILE_NAME = "dates-data(datahub-data).csv"
 
-        with open(self.FILE_PATH, "r") as csv_read_file:
+        with open(self.DATA_FILE_NAME, "r") as csv_read_file:
             self.country_data = list(csv.DictReader(csv_read_file))
 
     def get_start_dates(self):
@@ -30,7 +30,6 @@ class CSVDataReader:
             else:
                 self.countries_dates_data.append(data)
 
-
     def get_end_dates(self):
         """Returns a dictionary of the start and the end date of the different countries."""
         for country_num, country_data in enumerate(self.country_data[-len(self.countries_dates_data):]):
@@ -53,5 +52,5 @@ class CSVDataReader:
 
 
 if __name__ == "__main__":
-    Reader = CSVDataReader()
+    Reader = DatahubDataReader()
     Reader.make_csv_file()

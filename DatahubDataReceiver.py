@@ -13,7 +13,7 @@ class DatahubDataReceiver:
             "USER-AGENT": "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:47.0) Gecko/20100101 Firefox/47.0"
         }
         encoded_data = requests.get(self.DOWNLOAD_URL, headers=headers)
-        print(encoded_data.status_code)
+        print(f"Got status code: {encoded_data.status_code}")
         # print(encoded_data.content)
 
         with open(self.OUTPUT_FILE_NAME, "wb") as write_file:
@@ -21,5 +21,5 @@ class DatahubDataReceiver:
 
 
 if __name__ == "__main__":
-    Receiver = DatahubDataDownloader()
+    Receiver = DatahubDataReceiver()
     Receiver.download_csv_data()
