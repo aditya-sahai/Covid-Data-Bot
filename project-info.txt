@@ -1,5 +1,6 @@
 Data link: "https://covid.ourworldindata.org/data/owid-covid-data.json"
 Site link: "https://slides.ourworldindata.org/#/title-slide"
+New Data Source: "https://datahub.io/core/covid-19#data"
 Countries Deaths link: "https://slides.ourworldindata.org/2020_pandemic/2020_pandemic#/1"
 
 To Do:
@@ -15,4 +16,8 @@ To Do:
 
 5)  Plot deaths for india and china - done
 
-6)  Plot continents total_deaths
+6)  Plot Deaths, Recoveries, Total Cases for a single country
+
+7)  Plot continents total_deaths
+
+8)  Make csv file for start and end dates of each country

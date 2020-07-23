@@ -59,7 +59,7 @@ class GraphUI:
         country_deaths_list, dates_list = [], []
 
         for country_data in self.covid_data[country_abbr.strip().upper()]["data"][-number_of_days:]:
-            country_deaths_list.append(int(country_data["total_deaths"]))
+            country_deaths_list.append(int(country_data["total_cases"]))
             dates_list.append(country_data["date"])
 
         line,  = self.ax.plot(dates_list, country_deaths_list)
