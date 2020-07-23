@@ -4,7 +4,7 @@ import json
 
 class CSVDataReader:
     def __init__(self):
-        self.FILE_PATH = "countries-aggregated_csv.csv"
+        self.FILE_PATH = "datahub-countries-aggregated-data.csv"
         self.DATES_DATA_FILE_NAME = "dates-data.csv"
 
         with open(self.FILE_PATH, "r") as csv_read_file:
