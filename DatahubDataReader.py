@@ -1,4 +1,5 @@
 import csv
+import datetime
 
 
 class DatahubDataReader:
@@ -9,7 +10,7 @@ class DatahubDataReader:
         with open(self.DATA_FILE_NAME, "r") as csv_read_file:
             self.country_data = list(csv.DictReader(csv_read_file))
 
-    def get_start_dates(self):
+    def get_start_end_dates(self):
         """Gets the country start dates."""
 
         self.countries_dates_data = []
@@ -30,15 +31,13 @@ class DatahubDataReader:
             else:
                 self.countries_dates_data.append(data)
 
-    def get_end_dates(self):
-        """Returns a dictionary of the start and the end date of the different countries."""
         for country_num, country_data in enumerate(self.country_data[-len(self.countries_dates_data):]):
-            self.countries_dates_data[country_num]["End-Date"] = country_data["Date"]
+            date = country_data["Date"]
+            self.countries_dates_data[country_num]["End-Date"] = date
 
     def make_csv_file(self):
         """Writes the dates data into the csv file."""
-        self.get_start_dates()
-        self.get_end_dates()
+        self.get_start_end_dates()
 
         with open(self.DATES_DATA_FILE_NAME, "w") as csv_write_file:
             csv_write_file.write('"Country","Start Date","End Date"\n')
