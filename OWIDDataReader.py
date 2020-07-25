@@ -1,7 +1,8 @@
 import json
+from Reader import Reader
 
 
-class OWIDDataReader:
+class OWIDDataReader(Reader):
     def __init__(self):
         self.DATA_FILE_NAME = "covid-data.json"
         self.DATES_DATA_FILE_NAME = "dates-data(OWID-data).csv"
@@ -24,20 +25,6 @@ class OWIDDataReader:
                 "End-Date": end_date,
             }
             self.countries_dates_data.append(dates_dict)
-
-    def make_csv_file(self):
-        """Writes the dates data into the csv file."""
-        self.get_start_end_dates()
-
-        with open(self.DATES_DATA_FILE_NAME, "w") as csv_write_file:
-            csv_write_file.write('"Country","Start Date","End Date"\n')
-            for country_data in self.countries_dates_data:
-                country = country_data["Country"]
-                start_date = country_data["Start-Date"]
-                end_date = country_data["End-Date"]
-
-                line = f'"{country}","{start_date}","{end_date}"\n'
-                csv_write_file.write(line)
 
 
 if __name__ == "__main__":
