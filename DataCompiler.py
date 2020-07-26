@@ -7,6 +7,7 @@ class DataCompiler:
     def __init__(self):
         self.OWID_DATA_FILE_NAME = "dates-data(OWID-data).csv"
         self.DATAHUB_DATA_FILE_NAME = "dates-data(datahub-data).csv"
+        self.COMMON_DATES_FILE_NAME = "dates-data(common).csv"
 
     def get_country_sets(self, file):
         """Returns a set of the countries."""
@@ -56,22 +57,19 @@ class DataCompiler:
             "owid-data": owid_data,
         }
 
-    def check_older_newer_date(self, owid_date, datahub_date):
-        """Identifies and returns the older and newer date."""
+    def find_oldest_newest_date(self, comparing_dates):
+        """Identifies and returns the oldest and newest date."""
 
-        owid_start_year = int(owid_date.split("-")[0])
-        owid_start_month = int(owid_date.split("-")[1])
-        owid_start_day = int(owid_date.split("-")[2])
+        for index, date in enumerate(comparing_dates):
+            year = int(date.split("-")[0])
+            month = int(date.split("-")[1])
+            day = int(date.split("-")[2])
 
-        datahub_start_year = int(datahub_date.split("-")[0])
-        datahub_start_month = int(datahub_date.split("-")[1])
-        datahub_start_day = int(datahub_date.split("-")[2])
+            date = datetime(year, month, day)
+            comparing_dates[index] = date
 
-        owid_start_date = datetime(owid_start_year, owid_start_month, owid_start_day)
-        datahub_start_date = datetime(datahub_start_year, datahub_start_month, datahub_start_day)
-
-        newer_date = str(max([owid_start_date, datahub_start_date]).date())
-        older_date = str(min([owid_start_date, datahub_start_date]).date())
+        newer_date = str(max(comparing_dates).date())
+        older_date = str(min(comparing_dates).date())
 
         return {
             "newer": newer_date,
@@ -94,8 +92,8 @@ class DataCompiler:
             owid_end_date = owid_data[data_num]["End Date"]
             datahub_end_date = datahub_data[data_num]["End Date"]
 
-            start_date = self.check_older_newer_date(owid_start_date, datahub_start_date)["newer"]
-            end_date = self.check_older_newer_date(owid_end_date, datahub_end_date)["older"]
+            start_date = self.check_older_newer_date([owid_start_date, datahub_start_date])["newer"]
+            end_date = self.check_older_newer_date([owid_end_date, datahub_end_date])["older"]
 
             # print(f"Start Date: {start_date.date()} from {owid_start_date} and {datahub_start_date}")
             # print(f"End Date: {end_date.date()} from {owid_end_date} and {datahub_end_date}")
@@ -108,7 +106,22 @@ class DataCompiler:
 
             common_dates_data.append(date_data)
 
+        return common_dates_data
+
+    def make_csv(self):
+        """Makes csv file of the common dates."""
+        dates_data = self.get_common_dates()
+
+        with open(self.COMMON_DATES_FILE_NAME, "w") as csv_write_file:
+            csv_write_file.write('"Country","Start Date","End Date"\n')
+            for country_date in dates_data:
+                country = country_date["Country"]
+                start_date = country_date["Start Date"]
+                end_date = country_date["End Date"]
+                line = f'"{country}","{start_date}","{end_date}"\n'
+                csv_write_file.write(line)
+
 
 if __name__ == "__main__":
     Compiler = DataCompiler()
-    sources_data = Compiler.get_common_dates()
+    sources_data = Compiler.make_csv()
