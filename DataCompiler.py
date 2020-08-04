@@ -8,6 +8,7 @@ class DataCompiler:
         self.OWID_DATA_FILE_NAME = "dates-data(OWID-data).csv"
         self.DATAHUB_DATA_FILE_NAME = "dates-data(datahub-data).csv"
         self.COMMON_DATES_FILE_NAME = "dates-data(common).csv"
+        self.delete_exceptions = set([])
         self.get_common_dates()
 
     def get_country_sets(self, file):
@@ -24,18 +25,33 @@ class DataCompiler:
             countries_list.append(country)
 
         countries_set = set(countries_list)
+
+        countries_set -= self.delete_exceptions
         return countries_set
 
-    def remove_uncommon_countries(self, file, common_countries):
-        """Removes the uncommon countries data."""
-        with open(file, "r") as data_file:
-            data = list(csv.DictReader(data_file))
+    def remove_new_countries(self):
+        """Removes country from the dates data which are newer than 2020-04"""
+        common_new_dates = []
+        
+        for country in self.common_dates_data:
+            if not ("2020-04" in country["Start Date"] or "2020-05" in country["Start Date"]):
+                common_new_dates.append(country)
 
-        for country_num, country_data in enumerate(data):
-            if country_data["Country"] not in common_countries:
-                del data[country_num]
+        self.common_dates_data = common_new_dates[:]
+        
+    def get_common_country_dates(self, data, file_name):
+        """Returns a list with the dates data of the commmon countries"""
+        output_data = []
 
-        return data
+        with open(file_name, "r") as data_file:
+            file_data = list(csv.DictReader(data_file))
+
+        for country in data:
+            for dates_data in file_data:
+                if dates_data["Country"] == country:
+                    output_data.append(dates_data)
+        
+        return output_data
 
     def get_common_countries_dates_data(self):
         """Gets the common countries data from the 2 data sources."""
@@ -43,15 +59,15 @@ class DataCompiler:
         datahub_countries = self.get_country_sets(self.DATAHUB_DATA_FILE_NAME)
         common_countries = sorted(owid_countries.intersection(datahub_countries))
 
-        # print(f"Number of countries in datahub: {len(datahub_countries)}")
-        # print(f"Number of countries in owid: {len(owid_countries)}\n\n")
+        self.datahub_dates_data = self.get_common_country_dates(common_countries, self.DATAHUB_DATA_FILE_NAME)
+        self.owid_dates_data = self.get_common_country_dates(common_countries, self.OWID_DATA_FILE_NAME)
 
-        self.datahub_dates_data = self.remove_uncommon_countries(self.DATAHUB_DATA_FILE_NAME, common_countries)
-        self.owid_dates_data = self.remove_uncommon_countries(self.OWID_DATA_FILE_NAME, common_countries)
+        # self.datahub_dates_data = self.remove_new_countries(self.datahub_dates_data)
+        # self.owid_dates_data = self.remove_new_countries(self.owid_dates_data)
 
-        # print(f"Number of common countries: {len(common_countries)}")
-        # print(f"Number of countries data in datahub: {len(datahub_data)}")
-        # print(f"Number of countries data in owid: {len(owid_data)}")
+        print(f"Number of common countries: {len(common_countries)}")
+        print(f"Number of countries data in datahub: {len(self.datahub_dates_data)}")
+        print(f"Number of countries data in owid: {len(self.owid_dates_data)}")
 
     def find_oldest_newest_date(self, comparing_dates):
         """Identifies and returns the oldest and newest date."""
@@ -76,13 +92,11 @@ class DataCompiler:
         """Calls the get_common_countries_data() and changes the start and end dates do that they are common."""
 
         self.get_common_countries_dates_data()
-
         self.common_dates_data = []
 
-        for data_num in range(len(self.owid_dates_data)):
+        for data_num in range(len(self.datahub_dates_data)):
             owid_start_date = self.owid_dates_data[data_num]["Start Date"]
             datahub_start_date = self.datahub_dates_data[data_num]["Start Date"]
-
             owid_end_date = self.owid_dates_data[data_num]["End Date"]
             datahub_end_date = self.datahub_dates_data[data_num]["End Date"]
 
@@ -117,6 +131,8 @@ class DataCompiler:
 
     def make_csv(self):
         """Makes csv file of the common dates."""
+        self.remove_new_countries()
+        # print(self.common_dates_data)
         with open(self.COMMON_DATES_FILE_NAME, "w") as csv_write_file:
             csv_write_file.write('"Country","Start Date","End Date"\n')
             for country_date in self.common_dates_data:
@@ -130,3 +146,6 @@ class DataCompiler:
 if __name__ == "__main__":
     Compiler = DataCompiler()
     Compiler.make_csv()
+    Compiler.get_all_countries_start_end_date()
+    print(Compiler.start_date, Compiler.end_date)
+# 2020-05-15
