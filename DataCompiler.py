@@ -1,15 +1,19 @@
 import csv
 import pycountry
 from datetime import datetime
+import json
 
 
 class DataCompiler:
     def __init__(self):
-        self.OWID_DATA_FILE_NAME = "dates-data(OWID-data).csv"
-        self.DATAHUB_DATA_FILE_NAME = "dates-data(datahub-data).csv"
+        self.OWID_DATES_FILE_NAME = "dates-data(OWID-data).csv"
+        self.DATAHUB_DATES_FILE_NAME = "dates-data(datahub-data).csv"
         self.COMMON_DATES_FILE_NAME = "dates-data(common).csv"
-        self.delete_exceptions = set([])
+        self.DATAHUB_DATA_FILE_NAME = "datahub-countries-aggregated-data.csv"
+        self.OWID_DATA_FILE_NAME = "covid-data.json"
         self.get_common_dates()
+        self.remove_new_countries()
+        self.get_all_countries_start_end_date()
 
     def get_country_sets(self, file):
         """Returns a set of the countries."""
@@ -26,7 +30,6 @@ class DataCompiler:
 
         countries_set = set(countries_list)
 
-        countries_set -= self.delete_exceptions
         return countries_set
 
     def remove_new_countries(self):
@@ -55,12 +58,12 @@ class DataCompiler:
 
     def get_common_countries_dates_data(self):
         """Gets the common countries data from the 2 data sources."""
-        owid_countries = self.get_country_sets(self.OWID_DATA_FILE_NAME)
-        datahub_countries = self.get_country_sets(self.DATAHUB_DATA_FILE_NAME)
+        owid_countries = self.get_country_sets(self.OWID_DATES_FILE_NAME)
+        datahub_countries = self.get_country_sets(self.DATAHUB_DATES_FILE_NAME)
         common_countries = sorted(owid_countries.intersection(datahub_countries))
 
-        self.datahub_dates_data = self.get_common_country_dates(common_countries, self.DATAHUB_DATA_FILE_NAME)
-        self.owid_dates_data = self.get_common_country_dates(common_countries, self.OWID_DATA_FILE_NAME)
+        self.datahub_dates_data = self.get_common_country_dates(common_countries, self.DATAHUB_DATES_FILE_NAME)
+        self.owid_dates_data = self.get_common_country_dates(common_countries, self.OWID_DATES_FILE_NAME)
 
         # self.datahub_dates_data = self.remove_new_countries(self.datahub_dates_data)
         # self.owid_dates_data = self.remove_new_countries(self.owid_dates_data)
@@ -129,10 +132,56 @@ class DataCompiler:
         self.start_date = self.find_oldest_newest_date(start_dates)["newer"]
         self.end_date = self.find_oldest_newest_date(end_dates)["older"]
 
+    def get_datahub_data_dict(self):
+        """Returns a dictionary containing the recovered data along with the date."""
+        self.datahub_dict = {}           
+
+        with open(self.DATAHUB_DATA_FILE_NAME, "r") as datahub_data_file:
+            self.datahub_data = datahub_data_file.read().strip().split("\n")[1:]
+
+        for country in self.datahub_data:
+            country = country.split(",")
+            date = country[0]
+            country_name = country[1]
+            recovered = country[3]
+
+            if "2020-01" in date or "2020-02" in date or "2020-03-0" in date or "2020-03-1" in date or "2020-03-2" in date:
+                continue
+
+            try:
+                country_iso = pycountry.countries.get(name=country_name).alpha_3
+
+            except AttributeError:
+                continue
+            
+            else:                
+                if country_iso in list(self.datahub_dict.keys()):
+                    self.datahub_dict[country_iso]["data"].append(
+                        {
+                            "date": date,
+                            "recovered": recovered,
+                        }
+                    )
+                
+                else:
+                    self.datahub_dict[country_iso] = {
+                        "data": [],
+                    }
+                    self.datahub_dict[country_iso]["data"].append(
+                        {
+                            "date": date,
+                            "recovered": recovered,
+                        }
+                    )
+        print(json.dumps(self.datahub_dict, indent=4))
+
+    def get_compiled_dict(self):
+        self.get_datahub_data_dict()
+
+
     def make_csv(self):
         """Makes csv file of the common dates."""
-        self.remove_new_countries()
-        # print(self.common_dates_data)
+        
         with open(self.COMMON_DATES_FILE_NAME, "w") as csv_write_file:
             csv_write_file.write('"Country","Start Date","End Date"\n')
             for country_date in self.common_dates_data:
@@ -145,7 +194,4 @@ class DataCompiler:
 
 if __name__ == "__main__":
     Compiler = DataCompiler()
-    Compiler.make_csv()
-    Compiler.get_all_countries_start_end_date()
-    print(Compiler.start_date, Compiler.end_date)
-# 2020-05-15
+    Compiler.get_compiled_dict()
