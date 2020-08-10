@@ -60,15 +60,12 @@ class DataCompiler:
         """Gets the common countries data from the 2 data sources."""
         owid_countries = self.get_country_sets(self.OWID_DATES_FILE_NAME)
         datahub_countries = self.get_country_sets(self.DATAHUB_DATES_FILE_NAME)
-        common_countries = sorted(owid_countries.intersection(datahub_countries))
+        self.common_countries = sorted(owid_countries.intersection(datahub_countries))
 
-        self.datahub_dates_data = self.get_common_country_dates(common_countries, self.DATAHUB_DATES_FILE_NAME)
-        self.owid_dates_data = self.get_common_country_dates(common_countries, self.OWID_DATES_FILE_NAME)
+        self.datahub_dates_data = self.get_common_country_dates(self.common_countries, self.DATAHUB_DATES_FILE_NAME)
+        self.owid_dates_data = self.get_common_country_dates(self.common_countries, self.OWID_DATES_FILE_NAME)
 
-        # self.datahub_dates_data = self.remove_new_countries(self.datahub_dates_data)
-        # self.owid_dates_data = self.remove_new_countries(self.owid_dates_data)
-
-        print(f"Number of common countries: {len(common_countries)}")
+        print(f"\nNumber of common countries: {len(self.common_countries)}")
         print(f"Number of countries data in datahub: {len(self.datahub_dates_data)}")
         print(f"Number of countries data in owid: {len(self.owid_dates_data)}")
 
@@ -131,15 +128,70 @@ class DataCompiler:
 
         self.start_date = self.find_oldest_newest_date(start_dates)["newer"]
         self.end_date = self.find_oldest_newest_date(end_dates)["older"]
+        print(f"\nStart Date: {self.start_date}\nEnd Date: {self.end_date}")
+
+    def get_owid_data(self):
+        """Returns a dictionary containing the cases, deaths data along with the date."""
+        with open(self.OWID_DATA_FILE_NAME, "r") as owid_data_file:
+            owid_data = json.load(owid_data_file)
+        
+        self.all_countries_data_dict = {}
+
+        for country_iso in owid_data:
+            for data in owid_data[country_iso]["data"]:
+                date = data["date"]
+                
+                if "2020-01" in date or "2020-02" in date or "2020-03-0" in date or "2020-03-1" in date or "2020-03-2" in date:
+                    continue
+
+                if country_iso in list(self.all_countries_data_dict.keys()) and country_iso in self.common_countries:
+                    self.all_countries_data_dict[country_iso]["data"].append(
+                        {
+                            "date": date,
+                            "total-cases": data["total_cases"],
+                            "new-cases": data["new_cases"],
+                            "total-deaths": data["total_deaths"],
+                            "new-deaths": data["new_deaths"],
+                        }
+                    )
+                
+                else:
+                    if country_iso in self.common_countries:
+                        self.all_countries_data_dict[country_iso] = {
+                            "data": [],
+                        }
+                        try:
+                            self.all_countries_data_dict[country_iso]["data"].append(
+                                {
+                                    "date": date,
+                                    "total-cases": data["total_cases"],
+                                    "new-cases": data["new_cases"],
+                                    "total-deaths": data["total_deaths"],
+                                    "new-deaths": data["new_deaths"],
+                                }
+                            )
+                        except KeyError:
+                            print(f"Data: {data}\nCountry ISO Code: {country_iso}")
+                            exit()
 
     def get_datahub_data_dict(self):
         """Returns a dictionary containing the recovered data along with the date."""
-        self.datahub_dict = {}           
+        exceptions = {
+            "US": "USA",
+            "Bolivia": "BOL",
+            "Brunei": "BRN",
+            "Iran": "IRN",
+            "Russia": "RUS",
+            "Vietnam": "VNM",
+            "Venezuela": "VEN",
+            "South Korea": "KOR",
+            "Korea, South": "KOR",
+        }     
 
         with open(self.DATAHUB_DATA_FILE_NAME, "r") as datahub_data_file:
-            self.datahub_data = datahub_data_file.read().strip().split("\n")[1:]
+            datahub_data = datahub_data_file.read().strip().split("\n")[1:]
 
-        for country in self.datahub_data:
+        for country in datahub_data:
             country = country.split(",")
             date = country[0]
             country_name = country[1]
@@ -152,11 +204,25 @@ class DataCompiler:
                 country_iso = pycountry.countries.get(name=country_name).alpha_3
 
             except AttributeError:
-                continue
+                if country[1] in list(exceptions.keys()):
+                    country_iso = exceptions[country[1]]
+                    
+                    self.all_countries_data_dict[country_iso] = {
+                        "data": [],
+                    }
+                    self.all_countries_data_dict[country_iso]["data"].append(
+                        {
+                            "date": date,
+                            "recovered": recovered,
+                        }
+                    )
+
+                else:
+                    continue
             
             else:                
-                if country_iso in list(self.datahub_dict.keys()):
-                    self.datahub_dict[country_iso]["data"].append(
+                if country_iso in list(self.all_countries_data_dict.keys()):
+                    self.all_countries_data_dict[country_iso]["data"].append(
                         {
                             "date": date,
                             "recovered": recovered,
@@ -164,26 +230,35 @@ class DataCompiler:
                     )
                 
                 else:
-                    self.datahub_dict[country_iso] = {
+                    self.all_countries_data_dict[country_iso] = {
                         "data": [],
                     }
-                    self.datahub_dict[country_iso]["data"].append(
+                    self.all_countries_data_dict[country_iso]["data"].append(
                         {
                             "date": date,
                             "recovered": recovered,
                         }
                     )
-        print(json.dumps(self.datahub_dict, indent=4))
 
     def get_compiled_dict(self):
+        self.get_owid_data()
         self.get_datahub_data_dict()
 
+        self.data_dict = {}
+
+        for country in self.all_countries_data_dict:
+            have_recovered_data = self.all_countries_data_dict[country]["data"][0].get("recovered")
+
+            if not have_recovered_data:            
+                self.data_dict[country] = self.all_countries_data_dict[country]
+
+        print(f"\nNumber of countries with data: {len(self.data_dict)}")
 
     def make_csv(self):
         """Makes csv file of the common dates."""
-        
         with open(self.COMMON_DATES_FILE_NAME, "w") as csv_write_file:
             csv_write_file.write('"Country","Start Date","End Date"\n')
+            
             for country_date in self.common_dates_data:
                 country = country_date["Country"]
                 start_date = country_date["Start Date"]
