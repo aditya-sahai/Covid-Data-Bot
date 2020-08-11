@@ -142,9 +142,6 @@ class DataCompiler:
         for country in dates_data:
             self.valid_countries.append(country["Country"])
         
-        print(len(self.valid_countries))
-
-
     def get_owid_data(self):
         """Returns a dictionary containing the cases, deaths data along with the date."""
         self.owid_data_dict = {}
@@ -153,10 +150,10 @@ class DataCompiler:
             owid_data = json.load(owid_data_file)
 
         for country_iso in owid_data:
-            for data in owid_data[country_iso]["data"]:
+            for data in owid_data[country_iso]["data"][:-1]:
                 date = data["date"]
 
-                if "2020-01" in date or "2020-02" in date or "2020-03-0" in date or "2020-03-1" in date or "2020-03-2" in date:
+                if "2019" in date or "2020-01" in date or "2020-02" in date or "2020-03-0" in date or "2020-03-1" in date or "2020-03-2" in date:
                     continue
 
                 if country_iso not in self.valid_countries:
@@ -186,6 +183,7 @@ class DataCompiler:
                                 }
                             ],
                         }
+            # del self.owid_data_dict[country_iso]["data"][-1]
 
     def get_datahub_data_dict(self):
         """Returns a dictionary containing the recovered data along with the date."""
@@ -198,7 +196,7 @@ class DataCompiler:
             "Russia": "RUS",
             "Vietnam": "VNM",
             "Venezuela": "VEN",
-            'Korea South': "KOR",
+            "Korea South": "KOR",
         }     
 
         with open(self.DATAHUB_DATA_FILE_NAME, "r") as datahub_data_file:
@@ -231,7 +229,7 @@ class DataCompiler:
                 recovered = country_data[3]
                 deaths = country_data[4]
 
-            if "2020-01" in date or "2020-02" in date or "2020-03-0" in date or "2020-03-1" in date or "2020-03-2" in date:
+            if "2019" in date or "2020-01" in date or "2020-02" in date or "2020-03-0" in date or "2020-03-1" in date or "2020-03-2" in date:
                 continue
 
             if country_iso not in self.valid_countries:
@@ -241,9 +239,7 @@ class DataCompiler:
                 self.datahub_data_dict[country_iso]["data"].append(
                     {
                         "date": date,
-                        "confirmed": confirmed,
                         "recovered": recovered,
-                        "deaths": deaths,
                     }
                 )
             
@@ -252,25 +248,55 @@ class DataCompiler:
                     "data": [
                         {
                             "date": date,
-                            "confirmed": confirmed,
                             "recovered": recovered,
-                            "deaths": deaths,
                         }
                     ]
                 }
 
     def get_compiled_dict(self):
+        """Gets the compiled data."""
+        self.compiled_data_dict = {}
+
         self.get_valid_country_codes()
         self.get_owid_data()
         self.get_datahub_data_dict()
 
+        for country_iso in list(self.owid_data_dict.keys()):
+            self.compiled_data_dict[country_iso] = {
+                "data": []
+            }
+
+            for index in range(len(self.owid_data_dict[country_iso]["data"])):
+
+                date = self.owid_data_dict[country_iso]["data"][index]["date"]
+                total_cases = self.owid_data_dict[country_iso]["data"][index]["total-cases"]
+                new_cases = self.owid_data_dict[country_iso]["data"][index]["new-cases"]
+                total_deaths = self.owid_data_dict[country_iso]["data"][index]["total-deaths"]
+                new_deaths = self.owid_data_dict[country_iso]["data"][index]["new-deaths"]
+                recovered = self.datahub_data_dict[country_iso]["data"][index]["recovered"]
+
+                self.compiled_data_dict[country_iso]["data"].append(
+                    {
+                        "date": date,
+                        "total-cases": total_cases,
+                        "new-cases": new_cases,
+                        "total-deaths": total_deaths,
+                        "new-deaths": new_deaths,
+                        "recovered": recovered,
+                    }
+                )
+
         print(f"\nNumber of countries in owid source with data: {len(self.owid_data_dict)}")
         print(f"Number of countries in datahub source with data: {len(self.datahub_data_dict)}")
+        print(f"Number of countries in compiled source: {len(self.compiled_data_dict)}")
+
+        print(f"\nDifferent countries: {set(self.owid_data_dict.keys()) - set(self.datahub_data_dict.keys())}")
 
     def make_data_json(self):
-        """Writes the data to the json file."""
-        with open(self.COMPILED_DATA_FILE_NAME, "w") as json_compiled_file:
-            json.dump(self.data_dict, json_compiled_file, indent=4)
+        """Writes the json to a new file."""
+
+        with open(self.COMPILED_DATA_FILE_NAME, "w") as compiled_data_file:
+            json.dump(self.compiled_data_dict, compiled_data_file, indent=4)
 
     def make_csv(self):
         """Makes csv file of the common dates."""
@@ -287,4 +313,4 @@ class DataCompiler:
 
 if __name__ == "__main__":
     Compiler = DataCompiler()
-    # Compiler.make_data_json()
+    Compiler.make_data_json()
