@@ -198,77 +198,74 @@ class DataCompiler:
             "Russia": "RUS",
             "Vietnam": "VNM",
             "Venezuela": "VEN",
-            "South Korea": "KOR",
-            "Korea, South": "KOR",
+            'Korea South': "KOR",
         }     
 
         with open(self.DATAHUB_DATA_FILE_NAME, "r") as datahub_data_file:
             datahub_data = datahub_data_file.read().strip().split("\n")[1:]
 
         for country in datahub_data:
-            country = country.split(",")
-            date = country[0]
-            country_name = country[1]
-            recovered = country[3]
+            
+            if "Korea, South" in country:
+                country = country.replace(", ", " ")
+                country = country.replace('"', "")
+
+            country_data = country.split(",")
+            date = country_data[0]
+
+            try:
+                country_iso = pycountry.countries.get(name=country_data[1]).alpha_3
+
+            except AttributeError:
+                if country_data[1] in list(exceptions.keys()):
+                    country_iso = exceptions[country_data[1]]
+                    confirmed = country_data[2]
+                    recovered = country_data[3]
+                    deaths = country_data[4]
+
+                else:
+                    continue
+
+            else:
+                confirmed = country_data[2]
+                recovered = country_data[3]
+                deaths = country_data[4]
 
             if "2020-01" in date or "2020-02" in date or "2020-03-0" in date or "2020-03-1" in date or "2020-03-2" in date:
                 continue
 
-            try:
-                country_iso = pycountry.countries.get(name=country_name).alpha_3
+            if country_iso not in self.valid_countries:
+                continue
 
-            except AttributeError:
-                if country[1] in list(exceptions.keys()):
-                    country_iso = exceptions[country[1]]
-                    
-                    self.datahub_data_dict[country_iso] = {
-                        "data": [],
+            if country_iso in list(self.datahub_data_dict.keys()):
+                self.datahub_data_dict[country_iso]["data"].append(
+                    {
+                        "date": date,
+                        "confirmed": confirmed,
+                        "recovered": recovered,
+                        "deaths": deaths,
                     }
-                    self.datahub_data_dict[country_iso]["data"].append(
-                        {
-                            "date": date,
-                            "recovered": recovered,
-                        }
-                    )
-
-                else:
-                    continue
+                )
             
-            else:                
-                if country_iso in list(self.datahub_data_dict.keys()):
-                    self.datahub_data_dict[country_iso]["data"].append(
+            else:
+                self.datahub_data_dict[country_iso] = {
+                    "data": [
                         {
                             "date": date,
+                            "confirmed": confirmed,
                             "recovered": recovered,
+                            "deaths": deaths,
                         }
-                    )
-                
-                else:
-                    self.datahub_data_dict[country_iso] = {
-                        "data": [],
-                    }
-                    self.datahub_data_dict[country_iso]["data"].append(
-                        {
-                            "date": date,
-                            "recovered": recovered,
-                        }
-                    )
+                    ]
+                }
 
     def get_compiled_dict(self):
         self.get_valid_country_codes()
         self.get_owid_data()
-        # self.get_datahub_data_dict()
-
-        self.data_dict = {}
-
-        # for country in self.all_countries_data_dict:
-        #     have_recovered_data = self.all_countries_data_dict[country]["data"][0].get("recovered")
-
-        #     if not have_recovered_data:            
-        #         self.data_dict[country] = self.all_countries_data_dict[country]
+        self.get_datahub_data_dict()
 
         print(f"\nNumber of countries in owid source with data: {len(self.owid_data_dict)}")
-        # print(f"Number of countries in datahub source with data: {len(self.datahub_data_dict)}")
+        print(f"Number of countries in datahub source with data: {len(self.datahub_data_dict)}")
 
     def make_data_json(self):
         """Writes the data to the json file."""
@@ -290,4 +287,4 @@ class DataCompiler:
 
 if __name__ == "__main__":
     Compiler = DataCompiler()
-    Compiler.make_data_json()
+    # Compiler.make_data_json()
