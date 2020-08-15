@@ -120,8 +120,6 @@ class DataCompiler:
 
     def get_all_countries_start_end_date(self):
         """Returns a start and end date which is true for all countries."""
-        with open(self.COMMON_DATES_FILE_NAME, "r") as csv_dates_file:
-            dates_data = list(csv.DictReader(csv_dates_file))
 
         start_dates, end_dates = [], []
         for country_date in self.common_dates_data:
@@ -150,13 +148,14 @@ class DataCompiler:
             owid_data = json.load(owid_data_file)
 
         for country_iso in owid_data:
+            
+            if country_iso not in self.valid_countries:
+                continue
+            
             for data in owid_data[country_iso]["data"][:-1]:
                 date = data["date"]
 
                 if "2019" in date or "2020-01" in date or "2020-02" in date or "2020-03-0" in date or "2020-03-1" in date or "2020-03-2" in date:
-                    continue
-
-                if country_iso not in self.valid_countries:
                     continue
                 
                 else:
@@ -182,8 +181,7 @@ class DataCompiler:
                                     "new-deaths": data["new_deaths"],
                                 }
                             ],
-                        }
-            # del self.owid_data_dict[country_iso]["data"][-1]
+                        }            
 
     def get_datahub_data_dict(self):
         """Returns a dictionary containing the recovered data along with the date."""
@@ -265,6 +263,9 @@ class DataCompiler:
             self.compiled_data_dict[country_iso] = {
                 "data": []
             }
+
+            if len(self.owid_data_dict[country_iso]["data"]) > len(self.datahub_data_dict[country_iso]["data"]):
+                del self.owid_data_dict[country_iso]["data"][-1]
 
             for index in range(len(self.owid_data_dict[country_iso]["data"])):
 
