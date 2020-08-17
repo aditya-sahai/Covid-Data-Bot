@@ -33,13 +33,7 @@ class Plotter:
             "south korea": "KOR",
         }
 
-        print("""
-1)  Total Cases
-2)  New Cases
-3)  Total Deaths
-4)  New Deaths
-5)  Recovered
-6)  Country Detailed (which would show the deaths cases and recovered of a single country in one graph)""")
+        print("1)  Total Cases\n2)  New Cases\n3)  Total Deaths\n4)  New Deaths\n5)  Recovered\n6)  Country Detailed (which would show the deaths cases and recovered of a single country in one graph)")
         countries_iso_list = []
         required_data = "string"
         print()
