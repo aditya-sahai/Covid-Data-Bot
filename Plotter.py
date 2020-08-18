@@ -1,5 +1,6 @@
 import json
 import pycountry
+import matplotlib.pyplot as plt
 
 
 class Plotter:
@@ -14,6 +15,8 @@ class Plotter:
             "5": "recovered",
             "6": "all",
         }
+
+        self.fig, self.ax = plt.subplots()
 
     def get_user_data(self):
         """Gets the iso codes and data the user wants from the user."""
@@ -107,34 +110,49 @@ class Plotter:
         
         number_of_days = int(number_of_days)
 
-        user_requirement_dict = {
+        self.user_requirement_dict = {
             "countries": countries_iso_list,
             "number-of-days": number_of_days,
             "required-data": self.DATA_KEYS[required_data],
         }
-
-        return user_requirement_dict
     
-    def get_data(self, user_data):
+    def get_data(self):
         """Gets the data user wants."""
         with open(self.DATA_FILE_NAME, "r") as data_file:
             self.covid_data = json.load(data_file)
         
-        output_data = {}
+        self.output_data = {}
 
-        if user_data["required-data"] != "all":
-            for country in user_data["countries"]:
-                output_data[country] = {
-                    "data": self.covid_data[country]["data"][-user_data["number-of-days"]:]
-                }
+        for country in self.user_requirement_dict["countries"]:
+            self.output_data[country] = {
+                "data": self.covid_data[country]["data"][-self.user_requirement_dict["number-of-days"]:]
+            }
         
-        elif user_data["required-data"] == "all":
-            pass
-        
-        return output_data
-
     def plot_country_data(self):
         """Plots the data of the country the user wants BUT DOES NOT SHOW THE GRAPH."""
+
+        # list of dates for x-axis
+        # data for y axis
+
+        dates_list = []
+        recovered_data_dict = {}
+
+        for country in self.user_requirement_dict["countries"]:
+            recovered_data_dict[country] = {
+                "data": []
+            }
+            for data in self.output_data[country]["data"]:
+                dates_list.append(data["date"])
+                recovered_data_dict[country]["data"].append(data["recovered"])
+        
+        # print(dates_list)
+        print(json.dumps(recovered_data_dict, indent=4))
+
+        if self.user_requirement_dict["required-data"] == "all":
+            pass
+        
+        elif self.user_requirement_dict["required-data"] != "all":
+            pass
     
     def plot_country_detailed_data(self):
         """Plots the detailed data of the country that is the deaths recovered etc. of a single country."""
@@ -145,6 +163,7 @@ class Plotter:
 
 if __name__ == "__main__":
     GraphPlotter = Plotter()
-    user_data = GraphPlotter.get_user_data()
-    output_data = GraphPlotter.get_data(user_data)
-    print(json.dumps(output_data, indent=4))
+    GraphPlotter.get_user_data()
+    GraphPlotter.get_data()
+    # print(json.dumps(GraphPlotter.output_data, indent=4))
+    GraphPlotter.plot_country_data()
