@@ -136,6 +136,7 @@ class Plotter:
 
         dates_list = []
         recovered_data_dict = {}
+        user_data_dict = {}
 
         for country in self.user_requirement_dict["countries"]:
             recovered_data_dict[country] = {
@@ -146,12 +147,19 @@ class Plotter:
                 recovered_data_dict[country]["data"].append(data["recovered"])
         
         # print(dates_list)
-        print(json.dumps(recovered_data_dict, indent=4))
+        # print(json.dumps(recovered_data_dict, indent=4))
 
-        if self.user_requirement_dict["required-data"] == "all":
-            pass
-        
-        elif self.user_requirement_dict["required-data"] != "all":
+        if self.user_requirement_dict["required-data"] != "all":
+            for country in self.user_requirement_dict["countries"]:
+                user_data_dict[country] = {
+                    "data": []
+                }
+                for data in self.output_data[country]["data"]:
+                    user_data_dict[country]["data"].append(data[self.user_requirement_dict["required-data"]])
+            
+            print(json.dumps(user_data_dict, indent=4))
+            
+        elif self.user_requirement_dict["required-data"] == "all":
             pass
     
     def plot_country_detailed_data(self):
