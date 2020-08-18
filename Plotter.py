@@ -1,13 +1,10 @@
-from json import load
+import json
 import pycountry
 
 
 class Plotter:
     def __init__(self):
         self.DATA_FILE_NAME = "compiled-covid-data.json"
-
-        with open(self.DATA_FILE_NAME, "r") as data_file:
-            self.covid_data = load(data_file)
         
         self.DATA_KEYS = {
             "1": "total-cases",
@@ -117,6 +114,24 @@ class Plotter:
         }
 
         return user_requirement_dict
+    
+    def get_data(self, user_data):
+        """Gets the data user wants."""
+        with open(self.DATA_FILE_NAME, "r") as data_file:
+            self.covid_data = json.load(data_file)
+        
+        output_data = {}
+
+        if user_data["required-data"] != "all":
+            for country in user_data["countries"]:
+                output_data[country] = {
+                    "data": self.covid_data[country]["data"][-user_data["number-of-days"]:]
+                }
+        
+        elif user_data["required-data"] == "all":
+            pass
+        
+        return output_data
 
     def plot_country_data(self):
         """Plots the data of the country the user wants BUT DOES NOT SHOW THE GRAPH."""
@@ -131,4 +146,5 @@ class Plotter:
 if __name__ == "__main__":
     GraphPlotter = Plotter()
     user_data = GraphPlotter.get_user_data()
-    print(user_data)
+    output_data = GraphPlotter.get_data(user_data)
+    print(json.dumps(output_data, indent=4))

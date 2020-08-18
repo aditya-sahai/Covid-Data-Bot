@@ -225,9 +225,9 @@ class DataCompiler:
             except AttributeError:
                 if country_data[1] in list(exceptions.keys()):
                     country_iso = exceptions[country_data[1]]
-                    confirmed = country_data[2]
-                    recovered = country_data[3]
-                    deaths = country_data[4]
+                    confirmed = int(country_data[2])
+                    recovered = int(country_data[3])
+                    deaths = int(country_data[4])
 
                 else:
                     continue
