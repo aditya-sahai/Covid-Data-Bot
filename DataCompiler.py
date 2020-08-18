@@ -160,16 +160,26 @@ class DataCompiler:
                 
                 else:
                     if country_iso in list(self.owid_data_dict.keys()):
-                        self.owid_data_dict[country_iso]["data"].append(
-                        {
-                            "date": date,
-                            "total-cases": data["total_cases"],
-                            "new-cases": data["new_cases"],
-                            "total-deaths": data["total_deaths"],
-                            "new-deaths": data["new_deaths"],
-                        }
-                    )
-                    
+                        try:
+                            total_cases = data["total_cases"]
+                            new_cases = data["new_cases"]
+                            total_deaths = data["total_deaths"]
+                            new_deaths = data["new_deaths"]
+                        
+                        except KeyError:
+                            print(json.dumps(data, indent=4))
+                        
+                        finally:
+                            self.owid_data_dict[country_iso]["data"].append(
+                                {
+                                    "date": date,
+                                    "total-cases": total_cases,
+                                    "new-cases": new_cases,
+                                    "total-deaths": total_deaths,
+                                    "new-deaths": new_deaths,
+                                }
+                            )
+
                     else:
                         self.owid_data_dict[country_iso] = {
                             "data": [
@@ -223,9 +233,9 @@ class DataCompiler:
                     continue
 
             else:
-                confirmed = country_data[2]
-                recovered = country_data[3]
-                deaths = country_data[4]
+                confirmed = int(country_data[2])
+                recovered = int(country_data[3])
+                deaths = int(country_data[4])
 
             if "2019" in date or "2020-01" in date or "2020-02" in date or "2020-03-0" in date or "2020-03-1" in date or "2020-03-2" in date:
                 continue
@@ -314,4 +324,5 @@ class DataCompiler:
 
 if __name__ == "__main__":
     Compiler = DataCompiler()
+    Compiler.make_csv()
     Compiler.make_data_json()
