@@ -167,6 +167,7 @@ class DataCompiler:
                             new_deaths = data["new_deaths"]
                         
                         except KeyError:
+                            print(f"\n{country_iso}")
                             print(json.dumps(data, indent=4))
                         
                         finally:
