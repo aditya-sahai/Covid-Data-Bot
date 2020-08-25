@@ -18,8 +18,9 @@ class Plotter:
 
         self.fig, self.ax = plt.subplots()
 
+    """
     def get_user_data(self):
-        """Gets the iso codes and data the user wants from the user."""
+        # Gets the iso codes and data the user wants from the user.
         exceptions = {
             "us": "USA",
             "united states of america": "USA",
@@ -115,7 +116,89 @@ class Plotter:
             "number-of-days": number_of_days,
             "required-data": self.DATA_KEYS[required_data],
         }
-    
+    """
+
+    def get_user_data(self):
+        countries_iso_list = []
+        countries_num = "string"
+        print()
+        while not countries_num.isdigit():
+            countries_num = input("Enter the number of countries you wish to see the data for: ").strip()
+            
+            if countries_num.lower() == "q":
+                exit()
+
+        countries_num = int(countries_num)
+
+        print()
+        for n in range(countries_num):
+            country = input("Enter the country: ").lower().strip()
+            if country.lower() == "q":
+                exit()
+            
+            try:
+                country_iso = pycountry.countries.get(name=country).alpha_3
+            
+            except AttributeError:
+                if country in list(exceptions.keys()):
+                    country_iso = exceptions[country]
+                    countries_iso_list.append(country_iso)
+                
+                else:
+                    print(f"Could not find country for {country}")
+            
+            else:
+                countries_iso_list.append(country_iso)
+        
+        print()
+
+        if countries_num == 1:
+            print("1)  Total Cases\n2)  New Cases\n3)  Total Deaths\n4)  New Deaths\n5)  Recovered\n6)  Country Detailed (which would show the deaths cases and recovered of a single country in one graph)")
+            required_data = "string"
+            print()
+
+            while not required_data.isdigit():
+                required_data = input("Enter the number of the data you are looking for: ").strip()
+                
+                if required_data.lower() == "q":
+                    exit()
+                    
+            if int(required_data) > 6 or int(required_data) < 1:
+                print("Enter a number between 1 and 6.")
+                return self.get_user_data()
+        
+        elif countries_num > 1:
+            print("1)  Total Cases\n2)  New Cases\n3)  Total Deaths\n4)  New Deaths\n5)  Recovered")
+            required_data = "string"
+            print()
+
+            while not required_data.isdigit():
+                required_data = input("Enter the number of the data you are looking for: ").strip()
+                
+                if required_data.lower() == "q":
+                    exit()
+                    
+            if int(required_data) > 5 or int(required_data) < 1:
+                print("Enter a number between 1 and 5.")
+                return self.get_user_data()
+
+        number_of_days = "string"
+        print()
+
+        while not number_of_days.isdigit():
+            number_of_days = input("Enter the number of days for which you want to see the data for: ").strip()
+            
+            if number_of_days.lower() == "q":
+                exit()
+        
+        number_of_days = int(number_of_days)
+
+        self.user_requirement_dict = {
+            "countries": countries_iso_list,
+            "number-of-days": number_of_days,
+            "required-data": self.DATA_KEYS[required_data],
+        }
+
     def get_data(self):
         """Gets the data user wants."""
         with open(self.DATA_FILE_NAME, "r") as data_file:
@@ -175,7 +258,7 @@ class Plotter:
 
 if __name__ == "__main__":
     GraphPlotter = Plotter()
-    GraphPlotter.get_user_data()
-    GraphPlotter.get_data()
-    # print(json.dumps(GraphPlotter.output_data, indent=4))
-    GraphPlotter.plot_country_data()
+    GraphPlotter.new_get_user_data()
+    # GraphPlotter.get_data()
+    # # print(json.dumps(GraphPlotter.output_data, indent=4))
+    # GraphPlotter.plot_country_data()
