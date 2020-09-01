@@ -1,6 +1,10 @@
 import json
 import pycountry
 import matplotlib.pyplot as plt
+import numpy as np
+
+
+plt.style.use("seaborn-whitegrid")
 
 
 class Plotter:
@@ -119,6 +123,20 @@ class Plotter:
     """
 
     def get_user_data(self):
+
+        exceptions = {
+            "us": "USA",
+            "united states of america": "USA",
+            "usa": "USA",
+            "bolivia": "BOL",
+            "brunei": "BRN",
+            "iran": "IRN",
+            "russia": "RUS",
+            "vietnam": "VNM",
+            "venezuela": "VEN",
+            "south korea": "KOR",
+        }
+
         countries_iso_list = []
         countries_num = "string"
         print()
@@ -153,7 +171,12 @@ class Plotter:
         print()
 
         if countries_num == 1:
-            print("1)  Total Cases\n2)  New Cases\n3)  Total Deaths\n4)  New Deaths\n5)  Recovered\n6)  Country Detailed (which would show the deaths cases and recovered of a single country in one graph)")
+            # print("1)  Total Cases\n2)  Total Deaths\n3)  Country Detailed (which would show the deaths cases and recovered of a single country in one graph)")
+            print("""
+1)  Information About Cases
+2)  Information About Deaths
+3)  Detailed Information (Info about cases and deaths)
+            """)
             required_data = "string"
             print()
 
@@ -163,12 +186,15 @@ class Plotter:
                 if required_data.lower() == "q":
                     exit()
                     
-            if int(required_data) > 6 or int(required_data) < 1:
-                print("Enter a number between 1 and 6.")
+            if int(required_data) > 3 or int(required_data) < 1:
+                print("Enter a number between 1 and 3.")
                 return self.get_user_data()
         
         elif countries_num > 1:
-            print("1)  Total Cases\n2)  New Cases\n3)  Total Deaths\n4)  New Deaths\n5)  Recovered")
+            print("""
+1)  Information About Cases
+2)  Information About Deaths
+            """)
             required_data = "string"
             print()
 
@@ -178,8 +204,8 @@ class Plotter:
                 if required_data.lower() == "q":
                     exit()
                     
-            if int(required_data) > 5 or int(required_data) < 1:
-                print("Enter a number between 1 and 5.")
+            if int(required_data) > 2 or int(required_data) < 1:
+                print("Enter a number between 1 and 2.")
                 return self.get_user_data()
 
         number_of_days = "string"
@@ -225,9 +251,9 @@ class Plotter:
             recovered_data_dict[country] = {
                 "data": []
             }
-            for data in self.output_data[country]["data"]:
-                dates_list.append(data["date"])
-                recovered_data_dict[country]["data"].append(data["recovered"])
+        for data in self.output_data[country]["data"]:
+            dates_list.append(data["date"])
+            recovered_data_dict[country]["data"].append(data["recovered"])
         
         if self.user_requirement_dict["required-data"] != "all":
             for country in self.user_requirement_dict["countries"]:
@@ -236,7 +262,8 @@ class Plotter:
                 }
                 for data in self.output_data[country]["data"]:
                     user_data_dict[country]["data"].append(data[self.user_requirement_dict["required-data"]])
-            
+                            
+                self.ax.plot(dates_list, user_data_dict[country]["data"])
             
         elif self.user_requirement_dict["required-data"] == "all":
             country = self.user_requirement_dict["countries"][0]
@@ -247,18 +274,25 @@ class Plotter:
                 for data in self.output_data[country]["data"]:
                     user_data_dict[country][required_data].append(data[required_data])
 
-        # print(json.dumps(user_data_dict, indent=4))
+            # print(json.dumps(user_data_dict, indent=4))
+            # self.ax.plot(dates_list, user_data_dict[country][required_data])
+        
+        self.format_and_show_graph(dates_list)
     
     def plot_country_detailed_data(self):
         """Plots the detailed data of the country that is the deaths recovered etc. of a single country."""
 
-    def format_and_show_graph(self):
+    def format_and_show_graph(self, dates_list):
         """Formats and shows the graph."""
 
+        plt.yaxis()
+
+        plt.xticks(rotation=30, size=10)
+        plt.show()
 
 if __name__ == "__main__":
     GraphPlotter = Plotter()
-    GraphPlotter.new_get_user_data()
-    # GraphPlotter.get_data()
-    # # print(json.dumps(GraphPlotter.output_data, indent=4))
-    # GraphPlotter.plot_country_data()
+    GraphPlotter.get_user_data()
+    GraphPlotter.get_data()
+    # print(json.dumps(GraphPlotter.output_data, indent=4))
+    GraphPlotter.plot_country_data()
